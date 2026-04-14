@@ -1,0 +1,12 @@
+python-dotenv
+numpy
+pandas
+langchain-ollama
+langchain-groq
+langgraph
+groq
+openai
+nemoguardrails
+kaggle
+# Optional, used only when available for seeding convenience
+# torch

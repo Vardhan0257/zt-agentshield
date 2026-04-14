@@ -1,0 +1,12 @@
+models:
+  - type: main
+    engine: ollama
+    model: llama3.2
+
+rails:
+  input:
+    flows:
+      - check input safety
+  output:
+    flows:
+      - check output safety

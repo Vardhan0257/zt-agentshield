@@ -1,0 +1,14 @@
+define flow check input safety
+  $allowed = execute self_check_input
+  if not $allowed
+    bot refuse request
+    stop
+
+define flow check output safety  
+  $allowed = execute self_check_output
+  if not $allowed
+    bot refuse request
+    stop
+
+define bot refuse request
+  "I cannot process this request as it violates security policy."
