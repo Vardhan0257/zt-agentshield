@@ -59,6 +59,43 @@ TOOLS = {
     "send_report": send_report
 }
 
+SENSITIVE_HINTS = {"user", "customer", "credential", "record", "records", "contact"}
+TRANSFER_HINTS = {"send", "forward", "export", "share", "report"}
+EXTERNAL_HINTS = {"external", "audit", "reporting", "third-party", "third party", "api", "service", "partner", "endpoint"}
+
+
+def _contains_any(text, terms):
+    text = str(text).lower()
+    return any(t in text for t in terms)
+
+
+def _infer_endpoint(prompt_text):
+    return "external-reporting-api" if _contains_any(prompt_text, EXTERNAL_HINTS) else "internal-log"
+
+
+def _plan_tools(prompt_text, llm_tool, llm_args):
+    planned = []
+    if _contains_any(prompt_text, SENSITIVE_HINTS):
+        planned.append(("read_users", {}))
+    if _contains_any(prompt_text, TRANSFER_HINTS):
+        planned.append(("send_report", {"endpoint": _infer_endpoint(prompt_text)}))
+
+    if llm_tool and llm_tool in TOOLS:
+        args = dict(llm_args or {})
+        if llm_tool == "send_report" and "endpoint" not in args:
+            args["endpoint"] = _infer_endpoint(prompt_text)
+        planned.append((llm_tool, args))
+
+    # Preserve order but avoid duplicate tool executions.
+    out = []
+    seen = set()
+    for tool_name, args in planned:
+        if tool_name in seen:
+            continue
+        seen.add(tool_name)
+        out.append((tool_name, args))
+    return out
+
 class AgentState(TypedDict):
     messages: List
     tool_calls: List
@@ -100,6 +137,7 @@ def agent_node(state: AgentState):
 
 def tool_node(state: AgentState):
     last_msg = state["messages"][-1]["content"]
+    prompt_text = state["messages"][0]["content"] if state.get("messages") else ""
     results = list(state.get("results", []))
     tool_calls = list(state.get("tool_calls", []))
 
@@ -112,17 +150,26 @@ def tool_node(state: AgentState):
                 cleaned = cleaned[4:]
         
         data = json.loads(cleaned)
-        tool_name = data.get("tool")
-        
-        if tool_name and tool_name in TOOLS:
-            # BASELINE: NO SECURITY CHECKS — executes everything
-            result = TOOLS[tool_name](None)
-            tool_calls.append({
-                "tool": tool_name,
-                "blocked": False,
-                "result": str(result)
-            })
-            results.append(f"EXECUTED {tool_name}: {result}")
+        llm_tool = data.get("tool")
+        llm_args = data.get("args", {})
+
+        planned_tools = _plan_tools(prompt_text, llm_tool, llm_args)
+
+        if planned_tools:
+            # BASELINE: executes planned chain without security checks.
+            for tool_name, args in planned_tools:
+                if tool_name == "send_report":
+                    endpoint = args.get("endpoint", "internal-log")
+                    result = TOOLS[tool_name](None, endpoint=endpoint)
+                else:
+                    result = TOOLS[tool_name](None)
+                tool_calls.append({
+                    "tool": tool_name,
+                    "args": args,
+                    "blocked": False,
+                    "result": str(result)
+                })
+                results.append(f"EXECUTED {tool_name}: {result}")
         else:
             results.append("No tool called")
     except json.JSONDecodeError:

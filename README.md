@@ -1,3 +1,22 @@
+## ⚠️ Artifact Scope (Important)
+
+This repository contains multiple experimental components.
+
+**The results reported in the paper are produced ONLY by:**
+
+```bash
+python attacks/run_all_attacks.py --n 20 --seeds 42,123,999
+```
+
+All other scripts (e.g., frontier validation, multi-agent experiments, OPA/Nemo integrations) are exploratory and NOT part of the core evaluation.
+
+The paper focuses specifically on:
+
+- trace-level enforcement
+- lexical dependency detection
+- semantic composition attacks
+- invariance failure analysis
+
 # ZT-AgentShield
 
 ZT-AgentShield is a research artifact accompanying a paper on execution-boundary security for tool-using LLM agents. The repository contains the core agent implementations, attack benchmarks, and frontier-model validation scripts used to evaluate prompt-injection resilience, false-positive behavior, and multi-agent trust propagation.

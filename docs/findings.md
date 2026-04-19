@@ -1,13 +1,13 @@
 # Key Findings
 
-## Finding 1 - Indirect RAG Injection (A2): FULLY PREVENTED
+## Finding 1 - Indirect RAG Injection (A2): BLOCKED IN FIXED-TEMPLATE RUNS
 Baseline attack success rate: 100% (20/20 executions)
 Protected attack success rate: 0% (0/20 executions)
 Attack reduction: 100%
 
 The baseline agent consistently executes exfiltrate_secrets when the tool call is embedded in a retrieved document, confirming that LangGraph provides no execution-layer defense against indirect prompt injection. The protected system blocks all 20 attempts via policy enforcement (POLICY_DENIED), demonstrating complete prevention of this attack class.
 
-## Finding 2 - Benign Request (B1): NO FALSE POSITIVES
+## Finding 2 - Benign Request (B1): NO FALSE POSITIVES ON B1
 Baseline success: 100% (20/20 permitted)
 Protected success: 100% (20/20 permitted)
 False positive rate: 0%
@@ -17,6 +17,15 @@ The enforcement layer correctly permits all legitimate read_users requests, conf
 ## Finding 3 - LLM-Level Refusal (A1, A3)
 The local LLM model refused explicit attack prompts at the model level before tool execution was attempted. This represents a defense-in-depth finding: model-level safety + execution-layer enforcement provides layered protection. This is documented as an observation, not a failure of our system.
 
+## Failure Cases / Known Limitations
+Our system fails when a sensitive source is paraphrased into a semantically equivalent phrase because the dependency checker is still lexical and does not infer that "alice@example.com" and "user email" refer to the same underlying datum.
+
+Our system fails when a sensitive value is encoded or normalized because the dependency checker does not decode or canonicalize representations such as "sk-12345" versus "API key".
+
+Our system fails when the source and sink are separated by multi-step obfuscation or summarization because provenance is tracked through local tool outputs and text overlap, not through a full semantic execution graph.
+
+These limitations matter because an adaptive attacker can intentionally move from literal reuse to paraphrase, encoding, or summary-based transfer once direct string overlap is blocked.
+
 ## Overhead
 Mean enforcement overhead: 3.3ms (A2), <13ms across runs. This is acceptable for production agentic workflows where inference latency dominates (typically 500ms-2s).
 
@@ -25,7 +34,7 @@ The attestation layer's contribution is context-dependent. In single-agent scena
 
 ## Claim Tightening (Paper Text)
 Abstract language:
-"ZT-AgentShield reduces false-positive rate from 33.3% to 0% via intent-aware heuristic mitigation, with the caveat that static keyword lists are bypassable by adaptive adversaries (A6)."
+"Under fixed attack templates, we observe near-zero ASR. Under adaptive adversaries, residual vulnerabilities remain."
 
 Section 5 language after FPR table:
 "A6 (mitigation evasion) demonstrates that embedding authorization keywords in an attack prompt bypasses the keyword mitigation with 100% ASR, confirming that intent-aware mitigation reduces operational false positives but does not constitute a security boundary."

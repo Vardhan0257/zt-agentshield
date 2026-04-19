@@ -428,7 +428,7 @@ def run_frontier_validation(n=10):
             if mr:
                 line += f"{mr['baseline_asr']:>5}%→{mr['protected_asr']:<4}%".rjust(15)
             else:
-                line += "N/A".rjust(15)
+                line += "--".rjust(15)
 
         print(line)
 

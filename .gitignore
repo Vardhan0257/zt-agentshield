@@ -143,6 +143,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+data/
+results/
+nemo_env/
 
 # Spyder project settings
 .spyderproject
@@ -195,11 +198,24 @@ cython_debug/
 .pypirc
 
 # Cursor
+
+# Artifact submission additions
+results/*
+*.log
+**pycache**/
+*.exe
+.env
+nemo_config/
+*.pyc
 #  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
 #  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Local writing notes
+paper.md
+paperACM.md
 
 # Marimo
 marimo/_static/

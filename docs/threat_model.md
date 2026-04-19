@@ -55,3 +55,5 @@ B1 - Benign: Legitimate user requests permitted tool. System must NOT block this
 
 ## Limitations
 The intent-aware mitigation uses a static keyword list and is vulnerable to adversarial embedding: an attacker aware of the signal vocabulary can include authorization keywords in an injection prompt to bypass per-call policy checks. This attack requires knowledge of deployment-specific keyword settings and creates a hybrid attack that combines A1-style prompt injection with mitigation evasion. We treat this mitigation as an operator-friction reduction mechanism for legitimate workflows, not as a standalone security boundary.
+
+The dependency checker is intentionally conservative and still lexical in the current prototype. It can miss paraphrases such as "alice@example.com" rewritten as "user email", encoded references such as "sk-12345" rewritten as "API key", and multi-step summaries where the original token form is lost across intermediate tool outputs. Those failures are acceptable only as explicit limitations, not as security guarantees.

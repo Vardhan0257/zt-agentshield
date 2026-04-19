@@ -2,10 +2,12 @@ python-dotenv
 numpy
 pandas
 langchain-ollama
+ollama>=0.6.1
 langchain-groq
 langgraph
 groq
 openai
+google-generativeai
 nemoguardrails
 kaggle
 # Optional, used only when available for seeding convenience
